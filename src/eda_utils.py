@@ -36,19 +36,33 @@ def merge_data(styles_df: pd.DataFrame, images_df: pd.DataFrame) -> pd.DataFrame
     return df_merge
 
 
-def plot_class_distributions(df: pd.DataFrame) -> None:
+def plot_class_distributions(df: pd.DataFrame, variables: list, top_n: int = 10) -> None:
     """
-    Plots distributions for gender, masterCategory, top 10 subCategories, and top 10 baseColours.
+    Plots count distributions for the specified categorical variables.
+    Args:
+        df (pd.DataFrame): The dataframe containing the data.
+        variables (list): List of column names (categorical variables) to plot.
+        top_n (int): For variables with many categories, plot only the top_n most frequent.
     """
-    fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-    sns.countplot(data=df, x='gender', ax=axes[0,0])
-    axes[0,0].set_title('Gender Distribution')
-    sns.countplot(data=df, x='masterCategory', ax=axes[0,1])
-    axes[0,1].set_title('Master Category Distribution')
-    sns.countplot(data=df, x='subCategory', ax=axes[1,0], order=df['subCategory'].value_counts().index[:10])
-    axes[1,0].set_title('Top 10 SubCategories')
-    sns.countplot(data=df, x='baseColour', ax=axes[1,1], order=df['baseColour'].value_counts().index[:10])
-    axes[1,1].set_title('Top 10 Base Colours')
+    import math
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    n = len(variables)
+    ncols = 2
+    nrows = math.ceil(n / ncols)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(8 * ncols, 5 * nrows))
+    axes = axes.flatten()
+
+    for i, var in enumerate(variables):
+        # Si hay muchas categorías, solo mostramos las top_n
+        order = df[var].value_counts().index[:top_n] if df[var].nunique() > top_n else df[var].value_counts().index
+        sns.countplot(data=df, x=var, ax=axes[i], order=order)
+        axes[i].set_title(f'Distribution of {var}')
+        axes[i].tick_params(axis='x', rotation=45)
+    # Elimina ejes vacíos si hay
+    for j in range(i+1, len(axes)):
+        fig.delaxes(axes[j])
     plt.tight_layout()
     plt.show()
 
@@ -70,4 +84,68 @@ def missing_values_summary(df: pd.DataFrame) -> pd.Series:
     """
     Returns a summary of missing values per column in the DataFrame.
     """
-    return df.isnull().sum() 
+    return df.isnull().sum()
+
+
+def plot_dataset_histogram(image_paths, sample_size=100):
+    """
+    Plots the accumulated log-scale color histograms (R, G, B) for a sample of images.
+    Args:
+        image_paths (list): List of image file paths.
+        sample_size (int): Number of images to sample and analyze.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from PIL import Image
+    import random
+
+    # Sample images
+    sample_files = random.sample(image_paths, min(sample_size, len(image_paths)))
+    hist_accum = [np.zeros(256), np.zeros(256), np.zeros(256)]
+
+    for img_path in sample_files:
+        try:
+            img = Image.open(img_path).convert('RGB')
+            img_np = np.array(img)
+            for i in range(3):
+                hist, _ = np.histogram(img_np[:,:,i].ravel(), bins=256, range=(0,256))
+                hist_accum[i] += hist
+        except Exception as e:
+            continue
+
+    plt.figure(figsize=(12,4))
+    for i, color in enumerate(['Red', 'Green', 'Blue']):
+        plt.subplot(1,3,i+1)
+        plt.bar(np.arange(256), hist_accum[i], color=color.lower(), alpha=0.7)
+        plt.yscale('log')
+        plt.title(f'Accumulated Histogram {color}')
+    plt.tight_layout()
+    plt.show()
+
+
+def show_sample_images(image_paths, sample_size=5):
+    """
+    Displays a row of sample images from the provided list of image file paths.
+    Args:
+        image_paths (list): List of image file paths.
+        sample_size (int): Number of images to display (default 5).
+    """
+    import matplotlib.pyplot as plt
+    from PIL import Image
+    import os
+    import random
+
+    sample_paths = random.sample(image_paths, min(sample_size, len(image_paths)))
+
+    plt.figure(figsize=(3 * sample_size, 5))
+    for i, img_path in enumerate(sample_paths):
+        try:
+            img = Image.open(img_path)
+            plt.subplot(1, sample_size, i+1)
+            plt.imshow(img)
+            plt.axis('off')
+            plt.title(os.path.basename(img_path))
+        except Exception as e:
+            print(f"Error loading {img_path}: {e}")
+    plt.tight_layout()
+    plt.show() 
