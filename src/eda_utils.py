@@ -103,4 +103,89 @@ def analyze_image_dimensions(path: str) -> None:
     
     # Print statistics
     print("Image Dimension Statistics:")
-    print(dim_df.describe()) 
+    print(dim_df.describe())
+
+
+def analyze_color_distribution(path: str, num_samples: int = 100) -> None:
+    """
+    Analyze and plot color distribution (RGB histograms) for images in the dataset.
+    Args:
+        path (str): Path to the dataset directory
+        num_samples (int): Number of images to sample per emotion category
+    """
+    # Initialize accumulators for RGB histograms
+    hist_accum = [np.zeros(256), np.zeros(256), np.zeros(256)]
+    total_images = 0
+    
+    for emotion in os.listdir(path):
+        emotion_path = os.path.join(path, emotion)
+        if os.path.isdir(emotion_path):
+            # Sample images from each emotion category
+            image_files = glob.glob(os.path.join(emotion_path, '*.jpg'))[:num_samples]
+            
+            for img_path in image_files:
+                try:
+                    img = Image.open(img_path).convert('RGB')
+                    img_np = np.array(img)
+                    
+                    # Calculate histograms for each channel
+                    for i in range(3):  # R, G, B
+                        hist, _ = np.histogram(img_np[:,:,i].ravel(), bins=256, range=(0,256))
+                        hist_accum[i] += hist
+                    
+                    total_images += 1
+                except Exception as e:
+                    print(f"Error processing {img_path}: {e}")
+    
+    # Plot the accumulated histograms
+    plt.figure(figsize=(15, 5))
+    colors = ['Red', 'Green', 'Blue']
+    
+    for i, color in enumerate(colors):
+        plt.subplot(1, 3, i + 1)
+        plt.bar(np.arange(256), hist_accum[i] / total_images, color=color.lower(), alpha=0.7)
+        plt.title(f'{color} Channel Distribution')
+        plt.xlabel('Pixel Value')
+        plt.ylabel('Normalized Frequency')
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def analyze_pixel_distribution(path: str, num_samples: int = 50) -> None:
+    """
+    Analyze and plot pixel value distribution across the dataset.
+    Args:
+        path (str): Path to the dataset directory
+        num_samples (int): Number of images to sample per emotion category
+    """
+    pixel_values = []
+    
+    for emotion in os.listdir(path):
+        emotion_path = os.path.join(path, emotion)
+        if os.path.isdir(emotion_path):
+            # Sample images from each emotion category
+            image_files = glob.glob(os.path.join(emotion_path, '*.jpg'))[:num_samples]
+            
+            for img_path in image_files:
+                try:
+                    img = Image.open(img_path).convert('L')  # Convert to grayscale
+                    img_np = np.array(img)
+                    pixel_values.extend(img_np.ravel())
+                except Exception as e:
+                    print(f"Error processing {img_path}: {e}")
+    
+    # Plot pixel value distribution
+    plt.figure(figsize=(12, 6))
+    sns.histplot(pixel_values, bins=256, kde=True)
+    plt.title('Pixel Value Distribution')
+    plt.xlabel('Pixel Value')
+    plt.ylabel('Frequency')
+    plt.show()
+    
+    # Print statistics
+    print("Pixel Value Statistics:")
+    print(f"Mean: {np.mean(pixel_values):.2f}")
+    print(f"Standard Deviation: {np.std(pixel_values):.2f}")
+    print(f"Min: {np.min(pixel_values)}")
+    print(f"Max: {np.max(pixel_values)}") 
