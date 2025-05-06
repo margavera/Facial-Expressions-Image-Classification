@@ -10,6 +10,22 @@ import numpy as np
 plt.style.use('seaborn-v0_8')  
 sns.set_style("whitegrid")  
 
+def build_image_emotion_df(base_path):
+    """
+    Build a DataFrame with columns: 'filename' and 'Emotion' for all images in base_path.
+    Args:
+        base_path (str): Path to the dataset directory (train or test)
+    Returns:
+        pd.DataFrame: DataFrame with columns 'filename' and 'Emotion'
+    """
+    data = []
+    for emotion in os.listdir(base_path):
+        emotion_path = os.path.join(base_path, emotion)
+        if os.path.isdir(emotion_path):
+            for img_path in glob.glob(os.path.join(emotion_path, '*.jpg')):
+                filename = os.path.basename(img_path)
+                data.append({'filename': filename, 'Emotion': emotion})
+    return pd.DataFrame(data)
 
 def get_class_distribution(path: str) -> dict:
     """
@@ -282,18 +298,3 @@ def find_blank_images(folder_path, threshold=5):
         except Exception as e:
             print(f"Error processing {img_file}: {e}")
     return blank_images
-
-def count_images_in_folder(base_path):
-    """
-    Count the total number of .jpg images in all subfolders of a base directory.
-    Args:
-        base_path (str): Path to the base directory (e.g., train or test folder)
-    Returns:
-        int: Total number of images
-    """
-    total = 0
-    for emotion in os.listdir(base_path):
-        emotion_path = os.path.join(base_path, emotion)
-        if os.path.isdir(emotion_path):
-            total += len(glob.glob(os.path.join(emotion_path, '*.jpg')))
-    return total
