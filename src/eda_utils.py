@@ -241,3 +241,20 @@ def get_image_paths(df, base_path):
         os.path.join(base_path, row['Emotion'], row['filename'])
         for _, row in df.iterrows()
     ]    
+
+def balance_classes(df, random_state=42):
+    """
+    Downsample each class in the DataFrame to the size of the minority class.
+    Args:
+        df (pd.DataFrame): DataFrame with at least 'filename' and 'Emotion' columns.
+        random_state (int): For reproducibility.
+    Returns:
+        pd.DataFrame: Balanced DataFrame.
+    """
+    min_count = df['Emotion'].value_counts().min()
+    balanced_df = (
+        df.groupby('Emotion', group_keys=False)
+        .apply(lambda x: x.sample(min_count, random_state=random_state))
+        .reset_index(drop=True)
+    )
+    return balanced_df
