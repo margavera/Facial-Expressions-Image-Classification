@@ -27,26 +27,6 @@ def build_image_emotion_df(base_path):
                 data.append({'filename': filename, 'Emotion': emotion})
     return pd.DataFrame(data)
 
-def get_class_distribution(path: str) -> dict:
-    """
-    Get the distribution of images across emotion classes.
-    Args:
-        path (str): Path to the dataset directory (train or test)
-    Returns:
-        dict: Dictionary with emotion categories as keys and number of images as values
-    """
-    emotion_dirs = os.listdir(path)
-    distribution = {}
-    
-    for emotion in emotion_dirs:
-        emotion_path = os.path.join(path, emotion)
-        if os.path.isdir(emotion_path):
-            num_images = len(os.listdir(emotion_path))
-            distribution[emotion] = num_images
-    
-    return distribution
-
-
 def plot_class_distribution(df: pd.DataFrame, title: str) -> None:
     """
     Plots the distribution of images across emotion categories.
@@ -106,153 +86,107 @@ def show_sample_images(source, num_samples=5):
     else:
         raise ValueError("source must be a directory path (str) or a list of image paths.")
 
-
-def analyze_image_dimensions(path: str) -> None:
+def analyze_image_dimensions(image_paths):
     """
-    Analyze image dimensions across the dataset.
+    Analyze image dimensions for a given list of image file paths.
     Args:
-        path (str): Path to the dataset directory
+        image_paths (list): List of image file paths.
     """
     dimensions = []
-    
-    for emotion in os.listdir(path):
-        emotion_path = os.path.join(path, emotion)
-        if os.path.isdir(emotion_path):
-            for img_file in os.listdir(emotion_path)[:100]:  # Sample 100 images per category
-                img_path = os.path.join(emotion_path, img_file)
-                with Image.open(img_path) as img:
-                    dimensions.append(img.size)
-    
-    # Convert to DataFrame
+    for img_path in image_paths:
+        try:
+            with Image.open(img_path) as img:
+                dimensions.append(img.size)
+        except Exception as e:
+            print(f"Error processing {img_path}: {e}")
+
+    if not dimensions:
+        print("No valid images found.")
+        return
+
     dim_df = pd.DataFrame(dimensions, columns=['Width', 'Height'])
-    
-    # Plot distribution
+
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
     sns.histplot(dim_df['Width'], kde=True)
     plt.title('Width Distribution')
-    
+
     plt.subplot(1, 2, 2)
     sns.histplot(dim_df['Height'], kde=True)
     plt.title('Height Distribution')
-    
+
     plt.tight_layout()
     plt.show()
-    
-    # Print statistics
+
     print("Image Dimension Statistics:")
     print(dim_df.describe())
 
-
-def analyze_color_distribution(path: str, num_samples: int = 100) -> None:
+def analyze_color_distribution(image_paths):
     """
-    Analyze and plot color distribution (RGB histograms) for images in the dataset.
+    Analyze and plot color distribution (RGB histograms) for a list of image file paths.
     Args:
-        path (str): Path to the dataset directory
-        num_samples (int): Number of images to sample per emotion category
+        image_paths (list): List of image file paths.
     """
-    # Initialize accumulators for RGB histograms
     hist_accum = [np.zeros(256), np.zeros(256), np.zeros(256)]
     total_images = 0
-    
-    for emotion in os.listdir(path):
-        emotion_path = os.path.join(path, emotion)
-        if os.path.isdir(emotion_path):
-            # Sample images from each emotion category
-            image_files = glob.glob(os.path.join(emotion_path, '*.jpg'))[:num_samples]
-            
-            for img_path in image_files:
-                try:
-                    img = Image.open(img_path).convert('RGB')
-                    img_np = np.array(img)
-                    
-                    # Calculate histograms for each channel
-                    for i in range(3):  # R, G, B
-                        hist, _ = np.histogram(img_np[:,:,i].ravel(), bins=256, range=(0,256))
-                        hist_accum[i] += hist
-                    
-                    total_images += 1
-                except Exception as e:
-                    print(f"Error processing {img_path}: {e}")
-    
-    # Plot the accumulated histograms
+
+    for img_path in image_paths:
+        try:
+            img = Image.open(img_path).convert('RGB')
+            img_np = np.array(img)
+            for i in range(3):  # R, G, B
+                hist, _ = np.histogram(img_np[:,:,i].ravel(), bins=256, range=(0,256))
+                hist_accum[i] += hist
+            total_images += 1
+        except Exception as e:
+            print(f"Error processing {img_path}: {e}")
+
+    if total_images == 0:
+        print("No valid images found.")
+        return
+
     plt.figure(figsize=(15, 5))
     colors = ['Red', 'Green', 'Blue']
-    
     for i, color in enumerate(colors):
         plt.subplot(1, 3, i + 1)
         plt.bar(np.arange(256), hist_accum[i] / total_images, color=color.lower(), alpha=0.7)
         plt.title(f'{color} Channel Distribution')
         plt.xlabel('Pixel Value')
         plt.ylabel('Normalized Frequency')
-    
     plt.tight_layout()
     plt.show()
 
-
-def analyze_pixel_distribution(path: str, num_samples: int = 50) -> None:
+def analyze_pixel_distribution(image_paths):
     """
-    Analyze and plot pixel value distribution across the dataset.
+    Analyze and plot pixel value distribution for a list of image file paths.
     Args:
-        path (str): Path to the dataset directory
-        num_samples (int): Number of images to sample per emotion category
+        image_paths (list): List of image file paths.
     """
     pixel_values = []
-    
-    for emotion in os.listdir(path):
-        emotion_path = os.path.join(path, emotion)
-        if os.path.isdir(emotion_path):
-            # Sample images from each emotion category
-            image_files = glob.glob(os.path.join(emotion_path, '*.jpg'))[:num_samples]
-            
-            for img_path in image_files:
-                try:
-                    img = Image.open(img_path).convert('L')  # Convert to grayscale
-                    img_np = np.array(img)
-                    pixel_values.extend(img_np.ravel())
-                except Exception as e:
-                    print(f"Error processing {img_path}: {e}")
-    
-    # Plot pixel value distribution
+    for img_path in image_paths:
+        try:
+            img = Image.open(img_path).convert('L')  # Convert to grayscale
+            img_np = np.array(img)
+            pixel_values.extend(img_np.ravel())
+        except Exception as e:
+            print(f"Error processing {img_path}: {e}")
+
+    if not pixel_values:
+        print("No valid images found.")
+        return
+
     plt.figure(figsize=(12, 6))
     sns.histplot(pixel_values, bins=256, kde=True)
     plt.title('Pixel Value Distribution')
     plt.xlabel('Pixel Value')
     plt.ylabel('Frequency')
     plt.show()
-    
-    # Print statistics
+
     print("Pixel Value Statistics:")
     print(f"Mean: {np.mean(pixel_values):.2f}")
     print(f"Standard Deviation: {np.std(pixel_values):.2f}")
     print(f"Min: {np.min(pixel_values)}")
     print(f"Max: {np.max(pixel_values)}")
-
-
-def combine_emotion_classes(df: pd.DataFrame, source_class: str, target_class: str) -> pd.DataFrame:
-    """
-    Combine two emotion classes in a DataFrame and return the updated DataFrame.
-    Args:
-        df (pd.DataFrame): DataFrame containing emotion classes and their counts
-        source_class (str): The class to be merged (e.g., 'disgust')
-        target_class (str): The class to merge into (e.g., 'angry')
-    Returns:
-        pd.DataFrame: Updated DataFrame with combined classes
-    """
-    # Create a copy to avoid modifying the original
-    df_combined = df.copy()
-    
-    # Get the count of the source class
-    source_count = df_combined.loc[df_combined['Emotion'] == source_class, 'Count'].sum()
-    
-    # Add the count to the target class
-    df_combined.loc[df_combined['Emotion'] == target_class, 'Count'] += source_count
-    
-    # Remove the source class
-    df_combined = df_combined[df_combined['Emotion'] != source_class]
-    
-    return df_combined
-
 
 def plot_class_comparison(original_df: pd.DataFrame, combined_df: pd.DataFrame, title: str) -> None:
     """
@@ -298,3 +232,12 @@ def find_blank_images(folder_path, threshold=5):
         except Exception as e:
             print(f"Error processing {img_file}: {e}")
     return blank_images
+
+def get_image_paths(df, base_path):
+    """
+    Given a DataFrame with 'filename' and 'Emotion', return a list of full image paths.
+    """
+    return [
+        os.path.join(base_path, row['Emotion'], row['filename'])
+        for _, row in df.iterrows()
+    ]    
