@@ -235,26 +235,43 @@ def find_blank_images(folder_path, threshold=5):
 
 def get_image_paths(df, base_path):
     """
-    Given a DataFrame with 'filename' and 'Emotion', return a list of full image paths.
+    Given a DataFrame with 'filename' and 'Emotion', return a list of full, normalized image paths.
     """
+    import os
     return [
-        os.path.join(base_path, row['Emotion'], row['filename'])
+        os.path.normpath(os.path.join(base_path, row['Emotion'], row['filename']))
         for _, row in df.iterrows()
-    ]    
+    ]
 
-def balance_classes(df, random_state=42):
+def balance_classes(df, target_size, random_state=42):
     """
-    Downsample each class in the DataFrame to the size of the minority class.
+    Downsample each class in the DataFrame to achieve a target size while keeping the classes balanced.
     Args:
         df (pd.DataFrame): DataFrame with at least 'filename' and 'Emotion' columns.
+        target_size (int): The target number of images in the resulting dataset.
         random_state (int): For reproducibility.
     Returns:
-        pd.DataFrame: Balanced DataFrame.
+        pd.DataFrame: Balanced DataFrame with approximately the target size.
     """
-    min_count = df['Emotion'].value_counts().min()
-    balanced_df = (
-        df.groupby('Emotion', group_keys=False)
-        .apply(lambda x: x.sample(min_count, random_state=random_state))
-        .reset_index(drop=True)
-    )
+    # Number of unique classes
+    n_classes = df['Emotion'].nunique()
+
+    # Proportional reduction in each class
+    class_counts = df['Emotion'].value_counts()
+
+    # Calculate proportional number of samples per class
+    total_samples_per_class = int(target_size / n_classes)
+    
+    # Ensure we don't sample more than available images in each class
+    desired_samples_per_class = {
+        class_name: min(total_samples_per_class, count) 
+        for class_name, count in class_counts.items()
+    }
+
+    # Downsample each class according to the desired samples per class
+    balanced_df = df.groupby('Emotion', group_keys=False).apply(
+        lambda group: group.sample(desired_samples_per_class[group.name], random_state=random_state)
+    ).reset_index(drop=True)
+
     return balanced_df
+
