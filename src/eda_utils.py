@@ -24,18 +24,20 @@ def build_image_emotion_df(base_path):
         if os.path.isdir(emotion_path):
             for img_path in glob.glob(os.path.join(emotion_path, '*.jpg')):
                 filename = os.path.basename(img_path)
-                data.append({'filename': filename, 'Emotion': emotion})
+                data.append({'filename': filename, 'Original Emotion': emotion})
     return pd.DataFrame(data)
 
-def plot_class_distribution(df: pd.DataFrame, title: str) -> None:
+def plot_class_distribution(df: pd.DataFrame, x_col: str, y_col: str, title: str) -> None:
     """
-    Plots the distribution of images across emotion categories.
+    Plots the distribution of images across different categories.
     Args:
-        df (pd.DataFrame): DataFrame containing emotion categories and their counts
+        df (pd.DataFrame): DataFrame containing the data to plot
+        x_col (str): Column name for the x-axis
+        y_col (str): Column name for the y-axis
         title (str): Title for the plot
     """
     plt.figure(figsize=(12, 6))
-    sns.barplot(x='Emotion', y='Count', data=df)
+    sns.barplot(x=x_col, y=y_col, data=df)
     plt.title(title)
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -188,30 +190,33 @@ def analyze_pixel_distribution(image_paths):
     print(f"Min: {np.min(pixel_values)}")
     print(f"Max: {np.max(pixel_values)}")
 
-def plot_class_comparison(original_df: pd.DataFrame, combined_df: pd.DataFrame, title: str) -> None:
+def plot_class_comparison(original_df: pd.DataFrame, combined_df: pd.DataFrame, x_col: str, y_col: str, title: str) -> None:
     """
     Plot a comparison between original and combined class distributions.
     Args:
         original_df (pd.DataFrame): Original DataFrame with emotion classes
         combined_df (pd.DataFrame): DataFrame with combined emotion classes
+        x_col (str): Column name for the x-axis
+        y_col (str): Column name for the y-axis
         title (str): Title for the plot
     """
     # Create figure with two subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     
     # Plot original distribution
-    sns.barplot(x='Emotion', y='Count', data=original_df, ax=ax1)
+    sns.barplot(x=x_col, y=y_col, data=original_df, ax=ax1)
     ax1.set_title('Original Distribution')
     ax1.tick_params(axis='x', rotation=45)
     
     # Plot combined distribution
-    sns.barplot(x='Emotion', y='Count', data=combined_df, ax=ax2)
+    sns.barplot(x=x_col, y=y_col, data=combined_df, ax=ax2)
     ax2.set_title('After Combining Classes')
     ax2.tick_params(axis='x', rotation=45)
     
     plt.suptitle(title)
     plt.tight_layout()
-    plt.show() 
+    plt.show()
+
 
 def find_blank_images(folder_path, threshold=5):
     """
@@ -233,31 +238,44 @@ def find_blank_images(folder_path, threshold=5):
             print(f"Error processing {img_file}: {e}")
     return blank_images
 
-def get_image_paths(df, base_path):
+def get_image_paths(df, base_path, filename_col='filename', emotion_col='Emotion'):
     """
-    Given a DataFrame with 'filename' and 'Emotion', return a list of full, normalized image paths.
+    Given a DataFrame with columns for filename and emotion, return a list of full, normalized image paths.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing the image data (e.g., 'filename' and 'Emotion' columns).
+        base_path (str): The base directory where images are stored.
+        filename_col (str): The name of the column containing image filenames.
+        emotion_col (str): The name of the column containing emotion labels (subdirectories).
+        
+    Returns:
+        list: A list of full, normalized image paths.
     """
     import os
     return [
-        os.path.normpath(os.path.join(base_path, row['Emotion'], row['filename']))
+        os.path.normpath(os.path.join(base_path, row[emotion_col], row[filename_col]))
         for _, row in df.iterrows()
     ]
 
-def balance_classes(df, target_size, random_state=42):
+def balance_classes(df, target_size, class_col='Emotion', filename_col='filename', random_state=42):
     """
     Downsample each class in the DataFrame to achieve a target size while keeping the classes balanced.
+    
     Args:
-        df (pd.DataFrame): DataFrame with at least 'filename' and 'Emotion' columns.
+        df (pd.DataFrame): DataFrame with at least the column for class labels (e.g., 'Emotion') and filenames (e.g., 'filename').
         target_size (int): The target number of images in the resulting dataset.
+        class_col (str): The name of the column containing the class labels (default is 'Emotion').
+        filename_col (str): The name of the column containing the filenames (default is 'filename').
         random_state (int): For reproducibility.
+        
     Returns:
         pd.DataFrame: Balanced DataFrame with approximately the target size.
     """
     # Number of unique classes
-    n_classes = df['Emotion'].nunique()
+    n_classes = df[class_col].nunique()
 
     # Proportional reduction in each class
-    class_counts = df['Emotion'].value_counts()
+    class_counts = df[class_col].value_counts()
 
     # Calculate proportional number of samples per class
     total_samples_per_class = int(target_size / n_classes)
@@ -269,9 +287,10 @@ def balance_classes(df, target_size, random_state=42):
     }
 
     # Downsample each class according to the desired samples per class
-    balanced_df = df.groupby('Emotion', group_keys=False).apply(
-        lambda group: group.sample(desired_samples_per_class[group.name], random_state=random_state)
+    balanced_df = df.groupby(class_col, group_keys=False).apply(
+        lambda group: group.sample(desired_samples_per_class[group[class_col].iloc[0]], random_state=random_state)
     ).reset_index(drop=True)
 
     return balanced_df
+
 
