@@ -27,7 +27,7 @@ def build_image_emotion_df(base_path):
                 data.append({'filename': filename, 'Original Emotion': emotion})
     return pd.DataFrame(data)
 
-def plot_class_distribution(df: pd.DataFrame, x_col: str, y_col: str, title: str) -> None:
+def plot_class_distribution(df: pd.DataFrame, x_col: str, y_col: str, title: str):
     """
     Plots the distribution of images across different categories.
     Args:

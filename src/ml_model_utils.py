@@ -4,7 +4,7 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import numpy as np
 import pandas as pd
 import seaborn as sns
