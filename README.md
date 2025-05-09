@@ -47,10 +47,7 @@ The dataset is split into a training set with 28,709 images and a public test se
 ```
 
 **Model Folder**
-
-The trained models and model artifacts are stored in the **`models/`** directory. However, due to their size, they could not be uploaded directly to the repository. You can access the models via the following Google Drive link:
-
-[**Models on Google Drive**](https://drive.google.com/drive/folders/1TTkPwU9tVEYAOiKH9W_90rX-rAiAYPez?usp=sharing)
+The trained models and model artifacts are stored in the **`models/`** directory. However, due to their size, they could not be uploaded directly to the repository. You can access the models via the following Google Drive link: [**Models on Google Drive**](https://drive.google.com/drive/folders/1TTkPwU9tVEYAOiKH9W_90rX-rAiAYPez?usp=sharing)
 
 ### Project Overview:
 In this project, we aim to classify facial expressions into three categories: **positive**, **negative**, and **neutral**. Initially, we planned to use all the images with their corresponding categories. However, due to dataset size and resource limitations, we reduced the number of images and regrouped the categories into three: `positive`, `negative`, and `neutral`. This helped manage the computational load and focus on the most relevant categories for our task.
