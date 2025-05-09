@@ -7,12 +7,20 @@ Team members:
 | Elena Martínez Torrijos        | 202407060@alu.comillas.edu          |
 | Claudia Hermández de la Calera | chdelacalera@alu.comillas.edu       |
 
-
+### Dataset:
 The dataset used in this project was obtained from Kaggle and is available at the following link:     
 [Facial Expression Recognition](https://www.kaggle.com/datasets/msambare/fer2013/data)
 
+The objective is to classify the facial expressions into one of seven emotion categories: 
+- 0 = Angry
+- 1 = Disgust
+- 2 = Fear
+- 3 = Happy
+- 4 = Sad
+- 5 = Surprise
+- 6 = Neutral
 
-The dataset contains 48x48 pixel grayscale images of human faces. Each face has been preprocessed to ensure it's roughly centered and uniformly scaled across all samples. The objective is to classify the facial expressions into one of seven emotion categories: 0 = Angry, 1 = Disgust, 2 = Fear, 3 = Happy, 4 = Sad, 5 = Surprise, and 6 = Neutral. The dataset is split into a training set with 28,709 images and a public test set with 3,589 images.
+The dataset is split into a training set with 28,709 images and a public test set with 3,589 images.
 
 ## Project Structure
 
@@ -37,6 +45,12 @@ The dataset contains 48x48 pixel grayscale images of human faces. Each face has 
 ├── README.md                                # This file
 └── requirements.txt                       # Evinoment's requirements
 ```
+
+**Model Folder**
+
+The trained models and model artifacts are stored in the **`models/`** directory. However, due to their size, they could not be uploaded directly to the repository. You can access the models via the following Google Drive link:
+
+[**Models on Google Drive**](https://drive.google.com/drive/folders/1TTkPwU9tVEYAOiKH9W_90rX-rAiAYPez?usp=sharing)
 
 ### Project Overview:
 In this project, we aim to classify facial expressions into three categories: **positive**, **negative**, and **neutral**. Initially, we planned to use all the images with their corresponding categories. However, due to dataset size and resource limitations, we reduced the number of images and regrouped the categories into three: `positive`, `negative`, and `neutral`. This helped manage the computational load and focus on the most relevant categories for our task.
