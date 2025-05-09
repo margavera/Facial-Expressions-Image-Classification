@@ -3,7 +3,7 @@ Team members:
 
 | Name                           | Email                               |
 | -----------------------        | ----------------------------------- |
-| Margarita Vera Cabrer          | 202406918alu.comillas.edu           |
+| Margarita Vera Cabrer          | 202406918@alu.comillas.edu           |
 | Elena Martínez Torrijos        | 202407060@alu.comillas.edu          |
 | Claudia Hermández de la Calera | chdelacalera@alu.comillas.edu       |
 
