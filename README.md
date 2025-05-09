@@ -41,7 +41,7 @@ The dataset contains 48x48 pixel grayscale images of human faces. Each face has 
 ### Project Overview:
 In this project, we aim to classify facial expressions into three categories: **positive**, **negative**, and **neutral**. Initially, we planned to use all the images with their corresponding categories. However, due to dataset size and resource limitations, we reduced the number of images and regrouped the categories into three: `positive`, `negative`, and `neutral`. This helped manage the computational load and focus on the most relevant categories for our task.
 
-### Lineas de Mejora (Lines of Improvement):
+### Lines of Improvement:
 
 1. **Image Detection for Preprocessing**:
    It would be beneficial to use **face detection** techniques as part of the preprocessing pipeline. This would help focus the model’s attention on the faces, eliminating noise from the background and improving the overall model performance. By centering the face in the image and normalizing it, the model would have cleaner data to train on, leading to better results.
